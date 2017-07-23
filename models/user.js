@@ -35,7 +35,13 @@ User.prototype.save = function (callback) {
                 if (err) {
                     return callback(err);
                 }
-                callback(null, user[0]);//返回存储后的用户文档
+                /**
+                 * The insert command will return a results object that contains several fields that might be useful.
+                 * result: Contains the result document from MongoDB
+                 * ops: Contains the documents inserted with added _id fields
+                 * connection: Contains the connection used to perform the insert
+                 */
+                callback(null, user.ops[0]);//返回存储后的用户文档
             });
         });
     });
