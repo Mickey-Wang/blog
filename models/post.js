@@ -10,6 +10,7 @@ function Post(name, title, post) {
 
 module.exports = Post;
 
+// 保存文章
 Post.prototype.save = function (callback) {
     var date = new Date();
     // 存储各种时间格式，方便以后扩展
@@ -52,19 +53,20 @@ Post.prototype.save = function (callback) {
     });
 }
 
-Post.get = function (name, callback) {
+// 获取所有文章
+Post.getAll = function (name, callback) {
     mongodb.open(function (err, db) {
-        if(err){
+        if (err) {
             return callback(err);
         }
 
         db.collection('posts', function (err, collection) {
-            if(err){
+            if (err) {
                 mongodb.close();
                 return callback(err);
             }
             var query = {};
-            if(name){
+            if (name) {
                 query.name = name;
             }
             // 根据query对象查询对象
@@ -72,7 +74,7 @@ Post.get = function (name, callback) {
                 time: -1
             }).toArray(function (err, docs) {
                 mongodb.close();
-                if(err){
+                if (err) {
                     return callback(err);
                 }
                 // 解析 markdown 为 html
@@ -83,4 +85,59 @@ Post.get = function (name, callback) {
             });
         });
     });
+}
+
+// 获取一篇文章
+Post.getOne = function (name, day, title, callback) {
+    mongodb.open(function (err, db) {
+        if (err) {
+            return callback(err);
+        }
+        db.collection('posts', function (err, collection) {
+            if (err) {
+                mongodb.close();
+                return callback(err);
+            }
+            // 根据用户名、时间和文章标题查询
+            collection.findOne({
+                "name": name,
+                "time.day": day,
+                "title": title
+            }, function (err, doc) {
+                mongodb.close();
+                if (err) {
+                    return callback(err);
+                }
+                doc.post = markdown.toHTML(doc.post);
+                callback(null, doc);
+            })
+
+        })
+    })
+}
+
+// 返回原始发表的内容（markdown源格式）
+Post.edit = function (name, day, title, callback) {
+    mongodb.open(function (err, db) {
+        if (err) {
+            return callback(err);
+        }
+        db.collection('posts', function (err, collection) {
+            if (err) {
+                mongodb.close();
+                return callback(err);
+            }
+            collection.findOne({
+                "name": name,
+                "time.day": day,
+                "title": title
+            }, function (err, doc) {
+                if (err) {
+                    return callback(err);
+                }
+                callback(null, doc);
+            })
+        })
+    })
+
 }
