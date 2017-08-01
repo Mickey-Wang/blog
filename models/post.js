@@ -41,7 +41,7 @@ Post.prototype.save = function (callback) {
             }
             // 将文档插入posts集合
             collection.insert(post, {
-                w: 1
+                w: 1// http://kyfxbl.iteye.com/blog/1952941
             }, function (err) {
                 mongodb.close();
                 if (err) {
@@ -132,12 +132,71 @@ Post.edit = function (name, day, title, callback) {
                 "time.day": day,
                 "title": title
             }, function (err, doc) {
+                mongodb.close();
                 if (err) {
                     return callback(err);
+                } else if (!doc) {
+                    return callback(new Error("用户名下无此文章！"));
                 }
                 callback(null, doc);
             })
         })
     })
-
 }
+
+// 更新一篇文章及相关信息
+Post.update = function (name, day, title, post, callback) {
+    mongodb.open(function (err, db) {
+        if (err) {
+            return callback(err);
+        }
+        db.collection('posts', function (err, collection) {
+            if (err) {
+                mongodb.close();
+                return callback(err);
+            }
+            collection.updateOne({
+                "name": name,
+                "time.day": day,
+                "title": title
+            }, {
+                $set: {post: post} //Use the $set operator to prevent the other fields from being left empty
+            }, function (err) {
+                mongodb.close();
+                if (err) {
+                    return callback(err);
+                }
+                callback(null);
+            })
+        })
+    })
+}
+
+// 删除一篇文章
+Post.remove = function (name, day, title, callback) {
+    mongodb.open(function (err, db) {
+        if (err) {
+            return callback(err);
+        }
+        db.collection('posts', function (err, collection) {
+            if (err) {
+                mongodb.close();
+                return callback(err);
+            }
+            collection.deleteOne({
+                'name': name,
+                'time.day': day,
+                'title': title
+            }, {w: 1}, function (err, result) {
+                mongodb.close();
+                if (err) {
+                    return callback(err);
+                } else if (result.result.n == 0) {
+                    return callback(new Error('删除失败！'))
+                }
+                callback(null);
+            })
+        })
+    })
+}
+
