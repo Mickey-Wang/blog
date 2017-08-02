@@ -7,6 +7,8 @@ function Post(name, title, post) {
     this.tilte = title;
     this.post = post;
 }
+// 分页常量
+Post.pageSize = 2;
 
 module.exports = Post;
 
@@ -54,8 +56,8 @@ Post.prototype.save = function (callback) {
     });
 }
 
-// 获取所有文章
-Post.getAll = function (name, callback) {
+// 获取所有文章（Post.pageSize篇分页）
+Post.getTen = function (name, pageNo, callback) {
     mongodb.open(function (err, db) {
         if (err) {
             return callback(err);
@@ -70,20 +72,27 @@ Post.getAll = function (name, callback) {
             if (name) {
                 query.name = name;
             }
-            // 根据query对象查询对象
-            collection.find(query).sort({
-                time: -1
-            }).toArray(function (err, docs) {
-                mongodb.close();
-                if (err) {
-                    return callback(err);
-                }
-                // 解析 markdown 为 html
-                docs.forEach(function (doc) {
-                    doc.post = markdown.toHTML(doc.post);
-                })
-                callback(null, docs);// 成功！以数组形式返回查询结果
-            });
+            // 根据query对象查询对象。使用count返回特定查询的文档总数total
+            collection.count(query, function (err, total) {
+                // 根据query对象查询，并跳过前(pageNo-1)*Post.pageSize个结果，返回之后的Post.pageSize个结果
+                collection
+                    .find(query)
+                    .skip((pageNo - 1) * Post.pageSize)
+                    .limit(Post.pageSize)
+                    .sort({
+                        time: -1
+                    }).toArray(function (err, docs) {
+                    mongodb.close();
+                    if (err) {
+                        return callback(err);
+                    }
+                    // 解析 markdown 为 html
+                    docs.forEach(function (doc) {
+                        doc.post = markdown.toHTML(doc.post);
+                    })
+                    callback(null, docs, total);// 成功！以数组形式返回查询结果
+                });
+            })
         });
     });
 }
@@ -109,7 +118,7 @@ Post.getOne = function (name, day, title, callback) {
                 if (err) {
                     return callback(err);
                 }
-                if(doc){
+                if (doc) {
                     doc.post = markdown.toHTML(doc.post);
                     doc.comments.forEach(function (comment) {
                         comment.content = markdown.toHTML(comment.content);

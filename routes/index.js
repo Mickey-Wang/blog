@@ -29,7 +29,10 @@ var upload = multer({ storage: storage })
 
 module.exports = function (app) {
     app.get('/', function (req, res) {
-        Post.getAll(null, function (err, posts) {
+        // 判断是否是第一页，并把请求的页数转换成number类型
+        var pageNo = req.query.p ? parseInt(req.query.p) : 1;
+        // 查询并返回第page页的Post.pageSize篇文章
+        Post.getTen(null, pageNo, function (err, posts, total) {
             if(err){
                 posts = [];
             }
@@ -37,6 +40,9 @@ module.exports = function (app) {
                 title: '主页',
                 user: req.session.user,
                 posts: posts,
+                pageNo: pageNo,
+                isFirstPage: (pageNo - 1) == 0,
+                isLastPage: ((pageNo - 1) * Post.pageSize + posts.length) == total,
                 success: req.flash('success').toString(),
                 error: req.flash('error').toString()
             });
@@ -176,7 +182,7 @@ module.exports = function (app) {
         res.redirect('/');
     });
 
-    // 用户页面路由
+    // 用户页面路由(分页)
     app.get('/u/:name', function (req, res) {
         // 检查用户是否存在
         User.get(req.params.name, function (err, user) {
@@ -185,7 +191,8 @@ module.exports = function (app) {
                 res.redirect('/');
             }
             //查询并返回该用户的所有文章
-            Post.getAll(user.name, function (err, posts) {
+            var pageNo = req.query.p ? parseInt(req.query.p) : 1;
+            Post.getTen(user.name, pageNo, function (err, posts, total) {
                 if(err){
                     req.flash('error', err);
                     return res.redirect('/');
@@ -193,6 +200,9 @@ module.exports = function (app) {
                 res.render('user', {
                     title: user.name,
                     posts: posts,
+                    pageNo: pageNo,
+                    isFirstPage: (pageNo - 1) == 0,
+                    isLastPage: ((pageNo - 1) * Post.pageSize + posts.length) == total,
                     user: req.session.user,
                     success: req.flash('success').toString(),
                     error: req.flash('error').toString()
