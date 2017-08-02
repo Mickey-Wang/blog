@@ -25,7 +25,7 @@ var storage = multer.diskStorage({
     }
 })
 
-var upload = multer({ storage: storage })
+var upload = multer({storage: storage})
 
 module.exports = function (app) {
     app.get('/', function (req, res) {
@@ -33,7 +33,7 @@ module.exports = function (app) {
         var pageNo = req.query.p ? parseInt(req.query.p) : 1;
         // 查询并返回第page页的Post.pageSize篇文章
         Post.getTen(null, pageNo, function (err, posts, total) {
-            if(err){
+            if (err) {
                 posts = [];
             }
             res.render('index', {
@@ -65,7 +65,7 @@ module.exports = function (app) {
             password = req.body.password,
             password_re = req.body['password-repeat'];
         // 检验用户两次输入的密码是否一致
-        if(password_re != password){
+        if (password_re != password) {
             req.flash('error', '两次输入的密码不一致！');
             return res.redirect('/reg');//返回注册页
         }
@@ -79,17 +79,17 @@ module.exports = function (app) {
         });
         // 检查用户名是否已经存在
         User.get(newUser.name, function (err, user) {
-            if(err){
+            if (err) {
                 req.flash('error', err);
                 return res.redirect('/');
             }
-            if(user) {
+            if (user) {
                 req.flash('error', '用户已存在！');
                 return res.redirect('/reg');
             }
             // 如果不存在则新增用户
             newUser.save(function (err, user) {
-                if(err) {
+                if (err) {
                     req.flash('error', err);
                     return res.redirect('/reg');
                 }
@@ -117,12 +117,12 @@ module.exports = function (app) {
             password = md5.update(req.body.password).digest('hex');
         //检查用户是否存在
         User.get(req.body.name, function (err, user) {
-            if(!user){
+            if (!user) {
                 req.flash('error', '用户不存在！');
                 return res.redirect('/login');//用户不存在则跳转到登录页
             }
             //检查密码是否一致
-            if(user.password != password){
+            if (user.password != password) {
                 req.flash('error', '密码错误！');
                 return res.redirect('/login');//密码错误则跳转到登录页
             }
@@ -149,7 +149,7 @@ module.exports = function (app) {
         var cureentUser = req.session.user,
             post = new Post(cureentUser.name, req.body.title, req.body.post);
         post.save(function (err) {
-            if(err){
+            if (err) {
                 req.flash('error', err);
                 return res.redirect('/');
             }
@@ -182,18 +182,35 @@ module.exports = function (app) {
         res.redirect('/');
     });
 
+    // 存档页面（所有文章的简略信息）路由
+    app.get('/archive', function (req, res) {
+        Post.getArchive(function (err, posts) {
+            if (err) {
+                req.flash('error', err);
+                return res.redirect('/');
+            }
+            res.render('archive', {
+                title: '存档',
+                posts: posts,
+                user: req.session.user,
+                success: req.flash('success').toString(),
+                error: req.flash('error').toString()
+            })
+        })
+    });
+
     // 用户页面路由(分页)
     app.get('/u/:name', function (req, res) {
         // 检查用户是否存在
         User.get(req.params.name, function (err, user) {
-            if(!user){
+            if (!user) {
                 req.flash('error', '用户不存在！');
                 res.redirect('/');
             }
             //查询并返回该用户的所有文章
             var pageNo = req.query.p ? parseInt(req.query.p) : 1;
             Post.getTen(user.name, pageNo, function (err, posts, total) {
-                if(err){
+                if (err) {
                     req.flash('error', err);
                     return res.redirect('/');
                 }
@@ -214,7 +231,7 @@ module.exports = function (app) {
     // 文章页面路由
     app.get('/u/:name/:day/:title', function (req, res) {
         Post.getOne(req.params.name, req.params.day, req.params.title, function (err, post) {
-            if(err){
+            if (err) {
                 req.flash('error', err);
                 return res.redirect('/');
             }
@@ -241,7 +258,7 @@ module.exports = function (app) {
         };
         var newComment = new Comment(req.params.name, req.params.day, req.params.title, comment);
         newComment.save(function (err) {
-            if(err){
+            if (err) {
                 req.flash('error', err);
                 return res.redirect('back');
             }
@@ -256,7 +273,7 @@ module.exports = function (app) {
         var currentUser = req.session.user;
         //查询登录用户名下的文章，只有自己的文章才可编辑
         Post.edit(currentUser.name, req.params.day, req.params.title, function (err, post) {
-            if(err) {
+            if (err) {
                 req.flash('error', err.message);
                 return res.redirect('back');
             }
@@ -275,7 +292,7 @@ module.exports = function (app) {
         var currentUser = req.session.user;
         Post.update(currentUser.name, req.params.day, req.params.title, req.body.post, function (err) {
             var url = encodeURI('/u/' + req.params.name + '/' + req.params.day + '/' + req.params.title);// 文章页
-            if(err){
+            if (err) {
                 req.flash('error', err);
                 return res.redirect(url);
             }
@@ -288,7 +305,7 @@ module.exports = function (app) {
     app.get('/remove/:name/:day/:title', function (req, res) {
         var currentUser = req.session.user;
         Post.remove(currentUser.name, req.params.day, req.params.title, function (err) {
-            if(err){
+            if (err) {
                 req.flash('error', err.message);
                 return res.redirect('back');
             }
@@ -298,7 +315,7 @@ module.exports = function (app) {
     });
 
     function checkLogin(req, res, next) {
-        if(!req.session.user){
+        if (!req.session.user) {
             req.flash('error', '未登录！');
             res.redirect('/login');
         }
@@ -306,7 +323,7 @@ module.exports = function (app) {
     }
 
     function checkNotLogin(req, res, next) {
-        if(req.session.user){
+        if (req.session.user) {
             req.flash('error', '已登录！');
             res.redirect('back');//返回之前的页面
         }
