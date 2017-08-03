@@ -2,9 +2,10 @@ var mongodb = require('./db'),
     markdown = require('markdown').markdown;
 
 
-function Post(name, title, post) {
+function Post(name, title, tags, post) {
     this.name = name;
     this.tilte = title;
+    this.tags = tags;
     this.post = post;
 }
 // 分页常量
@@ -28,6 +29,7 @@ Post.prototype.save = function (callback) {
         name: this.name,
         time: time,
         title: this.tilte,
+        tags: this.tags,
         post: this.post,
         comments: []
     }
@@ -95,6 +97,61 @@ Post.getTen = function (name, pageNo, callback) {
             })
         });
     });
+};
+
+// 获取所有标签
+Post.getTags = function (callback) {
+    mongodb.open(function (err, db) {
+        if(err){
+            return callback(err);
+        }
+        db.collection('posts', function (err, collection) {
+            if(err){
+                mongodb.close();
+                return callback(err);
+            }
+            //The distinct command returns a list of distinct values for the given key across a collection.
+            collection.distinct('tags',function (err, docs) {
+                mongodb.close();
+                if(err){
+                    return callback(err);
+                }
+                callback(null, docs);// 返回的docs就是只包含不重复tags值的一个数组
+            })
+        })
+    })
+};
+
+// 获取特定标签的所有文章
+Post.getTag = function (tag, callback) {
+    mongodb.open(function (err, db) {
+        if(err){
+            return callback(err);
+        }
+        db.collection('posts', function (err, collection) {
+            if(err){
+                mogodb.close();
+                return callback(err);
+            }
+            // 查询所有tags数组内包含tag的文档
+            // 返回只含有name, title, time组成的数组
+            collection.find({
+                "tags": tag
+            }).project({
+                'name': 1,
+                'title': 1,
+                'time': 1
+            }).sort({
+                time: -1
+            }).toArray(function (err, docs) {
+                mongodb.close();
+                if(err){
+                    return callback(err);
+                }
+                callback(null, docs);
+            })
+        })
+    })
 }
 
 // 获取一篇文章
