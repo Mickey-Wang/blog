@@ -9,3 +9,4 @@
  - 关闭数据库
  - ejs遇到esc报错信息
  - package.json中的版本问题
+ - 注：$符号开头的均为mongoDB操作符，应去mongoDB文档查询

@@ -31,7 +31,8 @@ Post.prototype.save = function (callback) {
         title: this.tilte,
         tags: this.tags,
         post: this.post,
-        comments: []
+        comments: [],
+        pv: 0
     }
 
     mongodb.open(function (err, db) {
@@ -171,17 +172,32 @@ Post.getOne = function (name, day, title, callback) {
                 "time.day": day,
                 "title": title
             }, function (err, doc) {
-                mongodb.close();
                 if (err) {
                     return callback(err);
                 }
                 if (doc) {
+                    // 每访问一次，pv值增加一次
+                    collection.update({
+                        "name": name,
+                        "time.day": day,
+                        "title": title
+                    }, {
+                        $inc: {'pv': 1} // Increments the value of the field by the specified amount.
+                    },function (err) {
+                        mongodb.close();
+                        if(err){
+                            return callback(err);
+                        }
+                    });
+
+                    // 解析markdown为html
                     doc.post = markdown.toHTML(doc.post);
                     doc.comments.forEach(function (comment) {
                         comment.content = markdown.toHTML(comment.content);
                     });
+                    callback(null, doc);
                 }
-                callback(null, doc);
+
             })
 
         })
