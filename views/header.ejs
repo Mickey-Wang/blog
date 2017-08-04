@@ -24,6 +24,8 @@
         <span><a title="登录" href="/login">login</a></span>
         <span><a title="注册" href="/reg">register</a></span>
         <% } %>
+        <!-- 这里注意如果form表单中只有一个type=”text” 的input，回车键生效，多个不起作用 -->
+        <span> <form action="/search" method="GET"> <input type="text" name="keyword" placeholder="SEARCH" class="search"/> </form> </span>
     </nav>
     <article>
     <% if(success) {%>

@@ -80,7 +80,7 @@ module.exports = function (app) {
         // 检查用户名是否已经存在
         User.get(newUser.name, function (err, user) {
             if (err) {
-                req.flash('error', err);
+                req.flash('error', err.message);;
                 return res.redirect('/');
             }
             if (user) {
@@ -90,7 +90,7 @@ module.exports = function (app) {
             // 如果不存在则新增用户
             newUser.save(function (err, user) {
                 if (err) {
-                    req.flash('error', err);
+                    req.flash('error', err.message);;
                     return res.redirect('/reg');
                 }
                 req.session.user = user;
@@ -151,7 +151,7 @@ module.exports = function (app) {
             post = new Post(cureentUser.name, req.body.title, tags, req.body.post);
         post.save(function (err) {
             if (err) {
-                req.flash('error', err);
+                req.flash('error', err.message);;
                 return res.redirect('/');
             }
             req.flash('sucess', '发布成功！');
@@ -187,7 +187,7 @@ module.exports = function (app) {
     app.get('/archive', function (req, res) {
         Post.getArchive(function (err, posts) {
             if (err) {
-                req.flash('error', err);
+                req.flash('error', err.message);;
                 return res.redirect('/');
             }
             res.render('archive', {
@@ -204,7 +204,7 @@ module.exports = function (app) {
     app.get('/tags', function (req, res) {
         Post.getTags(function (err, posts) {
             if(err){
-                req.flash('error', err);
+                req.flash('error', err.message);;
                 return res.redirect('/');
             }
             res.render('tags', {
@@ -221,7 +221,7 @@ module.exports = function (app) {
     app.get('/tags/:tag', function (req, res) {
         Post.getTag(req.params.tag, function (err, posts) {
             if(err){
-                req.flash('error', err);
+                req.flash('error', err.message);
                 return res.redirect('/');
             }
             res.render('tag', {
@@ -232,6 +232,23 @@ module.exports = function (app) {
                 error: req.flash('error').toString()
             })
         })
+    });
+
+    // 模糊查询路由
+    app.get('/search', function (req, res) {
+       Post.search(req.query.keyword, function (err, posts) {
+           if(err){
+               req.flash('error', err.message);
+               return res.redirect('/');
+           }
+           res.render('search', {
+               title: "SEARCH:" + req.query.keyword,
+               posts: posts,
+               user: req.session.user,
+               success: req.flash('success').toString(),
+               error: req.flash('error').toString()
+           })
+       })
     });
 
     // 用户页面路由(分页)
@@ -246,7 +263,7 @@ module.exports = function (app) {
             var pageNo = req.query.p ? parseInt(req.query.p) : 1;
             Post.getTen(user.name, pageNo, function (err, posts, total) {
                 if (err) {
-                    req.flash('error', err);
+                    req.flash('error', err.message);;
                     return res.redirect('/');
                 }
                 res.render('user', {
@@ -263,11 +280,12 @@ module.exports = function (app) {
         });
     });
 
+
     // 文章页面路由
     app.get('/u/:name/:day/:title', function (req, res) {
         Post.getOne(req.params.name, req.params.day, req.params.title, function (err, post) {
             if (err) {
-                req.flash('error', err);
+                req.flash('error', err.message);;
                 return res.redirect('/');
             }
             res.render('article', {
@@ -294,7 +312,7 @@ module.exports = function (app) {
         var newComment = new Comment(req.params.name, req.params.day, req.params.title, comment);
         newComment.save(function (err) {
             if (err) {
-                req.flash('error', err);
+                req.flash('error', err.message);;
                 return res.redirect('back');
             }
             req.flash('success', '留言成功！');
@@ -328,7 +346,7 @@ module.exports = function (app) {
         Post.update(currentUser.name, req.params.day, req.params.title, req.body.post, function (err) {
             var url = encodeURI('/u/' + req.params.name + '/' + req.params.day + '/' + req.params.title);// 文章页
             if (err) {
-                req.flash('error', err);
+                req.flash('error', err.message);;
                 return res.redirect(url);
             }
             req.flash('success', '修改成功！');
