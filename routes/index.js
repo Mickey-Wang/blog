@@ -234,6 +234,16 @@ module.exports = function (app) {
         })
     });
 
+    // 友情链接路由
+    app.get('/links', function (req, res) {
+        res.render('links', {
+            title: "友情链接",
+            user: req.session.user,
+            success: req.flash('success').toString(),
+            error: req.flash('error').toString()
+        })
+    });
+
     // 模糊查询路由
     app.get('/search', function (req, res) {
        Post.search(req.query.keyword, function (err, posts) {
