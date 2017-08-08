@@ -14,6 +14,11 @@ var flash = require('connect-flash');
 var session = require('express-session');
 var MongoStore = require('connect-mongo')(session);
 
+// 准备日志文件流
+var fs = require('fs');
+var accessLog = fs.createWriteStream('access.log', {flags: 'a'});// use {'flags': 'a'} to append and {'flags': 'w'} to erase and write a new file
+var errorLog = fs.createWriteStream('error.log', {flags: 'a'});
+
 var app = express();
 
 app.use(session({
@@ -40,11 +45,18 @@ app.use(flash());
 
 // uncomment after placing your favicon in /public
 //app.use(favicon(path.join(__dirname, 'public', 'favicon.ico')));
-app.use(logger('dev'));
+app.use(logger('combined', {stream: accessLog}));
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
+
+// 记录错误日志
+app.use(function (err, req, res, next) {
+    var meta = '[' + new Date() + ']' + req.url + '\n';
+    errorLog.write(meta + err.stack + '\n');
+    next();
+});
 
 // app.use('/', index);
 // app.use('/users', users);

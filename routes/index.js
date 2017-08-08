@@ -387,7 +387,7 @@ module.exports = function (app) {
         // 根据信息查找文章post文档，确定是否有此篇文章
         Post.edit(req.params.name, req.params.day, req.params.title, function (err, post) {
             if(err){
-                req.flash('error', err);
+                req.flash('error', err.message);
                 return res.redirect('back');
             }
             var currentUser = req.session.user,
@@ -395,7 +395,7 @@ module.exports = function (app) {
                 reprint_to = {name: currentUser.name, head: currentUser.head};
             Post.reprint(reprint_from, reprint_to, function (err, post) {
                 if(err){
-                    req.flash('error', err);
+                    req.flash('error', err.message);
                     return res.redirect('back');
                 }
                 req.flash('success', '转载成功！');
