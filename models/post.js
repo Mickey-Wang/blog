@@ -95,10 +95,10 @@ Post.getTen = function (name, pageNo, callback) {
                     // 解析 markdown 为 html
                     docs.forEach(function (doc) {
                         doc.post = markdown.toHTML(doc.post);
-                    })
+                    });
                     callback(null, docs, total);// 成功！以数组形式返回查询结果
                 });
-            })
+            });
         });
     });
 };

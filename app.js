@@ -21,6 +21,9 @@ var errorLog = fs.createWriteStream('error.log', {flags: 'a'});
 
 var app = express();
 
+var passport = require('passport'),
+    GithubStrategy = require('passport-github').Strategy;
+
 app.use(session({
     secret: settings.cookieSecret,
     key: settings.db, //cookie name
@@ -60,6 +63,16 @@ app.use(function (err, req, res, next) {
 
 // app.use('/', index);
 // app.use('/users', users);
+// 通过github授权登录
+app.use(passport.initialize());// 初始化Passport
+passport.use(new GithubStrategy({
+    clientID: 'd335f3d7fa728b5ccf9e',
+    clientSecret: 'c84636ac4781921258814691fa740ffd8b8ae53d',
+    callbackURL: 'http://localhost:3000/login/github/callback'
+},function (accessToken, refreshToken, profile, done) {
+    done(null, profile);
+}));
+
 routes(app);
 
 // catch 404 and forward to error handler

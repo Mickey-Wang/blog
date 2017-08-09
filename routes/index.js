@@ -12,7 +12,8 @@ var crypto = require('crypto'),
     multer = require('multer'), // https://github.com/expressjs/multer/blob/master/doc/README-zh-cn.md
     User = require('../models/user.js'),
     Post = require('../models/post.js'),
-    Comment = require('../models/comment.js');
+    Comment = require('../models/comment.js'),
+    passport = require('passport');
 const assert = require('assert');
 
 // 配置multer上传文件
@@ -108,6 +109,21 @@ module.exports = function (app) {
             success: req.flash('sucess').toString(),
             error: req.flash('error').toString()
         });
+    });
+
+    // 通过github登录
+    app.get('/login/github', passport.authenticate('github', {session: false}));
+    app.get('/login/github/callback', passport.authenticate('github', {
+        session: false,
+        failureRedirect: '/login',
+        successFlash: '登陆成功!'
+    }), function (req, res) {
+        req.session.user = {
+            name: req.user.username,
+            head: 'https://gravatar.com/avatar/' + req.user._json.gravatar_id + '?s=48'
+            // head: req.user._json.avatar_url
+        };
+        res.redirect('/');
     });
 
     app.post('/login', checkNotLogin);
@@ -271,7 +287,7 @@ module.exports = function (app) {
             }
             //查询并返回该用户的所有文章
             var pageNo = req.query.p ? parseInt(req.query.p) : 1;
-            Post.getTen(user.name, pageNo, function (err, posts, total) {
+            Post.getTen(req.params.name, pageNo, function (err, posts, total) {
                 if (err) {
                     req.flash('error', err.message);;
                     return res.redirect('/');
