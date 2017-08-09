@@ -38,21 +38,21 @@ Post.prototype.save = function (callback) {
         pv: 0
     }
 
-    mongodb.open(function (err, db) {
+    mongodb.connect(settings.url, function (err, db) {
         if (err) {
             return callback(err);
         }
         // 读取 posts 集合
         db.collection('posts', function (err, collection) {
             if (err) {
-                mongodb.close();
+                db.close();
                 return callback(err);
             }
             // 将文档插入posts集合
             collection.insert(post, {
                 w: 1// http://kyfxbl.iteye.com/blog/1952941
             }, function (err) {
-                mongodb.close();
+                db.close();
                 if (err) {
                     return callback(err);
                 }
@@ -64,14 +64,14 @@ Post.prototype.save = function (callback) {
 
 // 获取所有文章（Post.pageSize篇分页）
 Post.getTen = function (name, pageNo, callback) {
-    mongodb.open(function (err, db) {
+    mongodb.connect(settings.url, function (err, db) {
         if (err) {
             return callback(err);
         }
 
         db.collection('posts', function (err, collection) {
             if (err) {
-                mongodb.close();
+                db.close();
                 return callback(err);
             }
             var query = {};
@@ -88,7 +88,7 @@ Post.getTen = function (name, pageNo, callback) {
                     .sort({
                         time: -1
                     }).toArray(function (err, docs) {
-                    mongodb.close();
+                    db.close();
                     if (err) {
                         return callback(err);
                     }
@@ -105,18 +105,18 @@ Post.getTen = function (name, pageNo, callback) {
 
 // 获取所有标签
 Post.getTags = function (callback) {
-    mongodb.open(function (err, db) {
+    mongodb.connect(settings.url, function (err, db) {
         if (err) {
             return callback(err);
         }
         db.collection('posts', function (err, collection) {
             if (err) {
-                mongodb.close();
+                db.close();
                 return callback(err);
             }
             //The distinct command returns a list of distinct values for the given key across a collection.
             collection.distinct('tags', function (err, docs) {
-                mongodb.close();
+                db.close();
                 if (err) {
                     return callback(err);
                 }
@@ -128,7 +128,7 @@ Post.getTags = function (callback) {
 
 // 获取特定标签的所有文章
 Post.getTag = function (tag, callback) {
-    mongodb.open(function (err, db) {
+    mongodb.connect(settings.url, function (err, db) {
         if (err) {
             return callback(err);
         }
@@ -148,7 +148,7 @@ Post.getTag = function (tag, callback) {
             }).sort({
                 time: -1
             }).toArray(function (err, docs) {
-                mongodb.close();
+                db.close();
                 if (err) {
                     return callback(err);
                 }
@@ -160,13 +160,13 @@ Post.getTag = function (tag, callback) {
 
 // 获取一篇文章（获取到解析过后的html格式）
 Post.getOne = function (name, day, title, callback) {
-    mongodb.open(function (err, db) {
+    mongodb.connect(settings.url, function (err, db) {
         if (err) {
             return callback(err);
         }
         db.collection('posts', function (err, collection) {
             if (err) {
-                mongodb.close();
+                db.close();
                 return callback(err);
             }
             // 根据用户名、时间和文章标题查询
@@ -187,7 +187,7 @@ Post.getOne = function (name, day, title, callback) {
                     }, {
                         $inc: {'pv': 1} // Increments the value of the field by the specified amount.
                     }, function (err) {
-                        mongodb.close();
+                        db.close();
                         if (err) {
                             return callback(err);
                         }
@@ -209,13 +209,13 @@ Post.getOne = function (name, day, title, callback) {
 
 // 返回原始发表的内容（markdown源格式）
 Post.edit = function (name, day, title, callback) {
-    mongodb.open(function (err, db) {
+    mongodb.connect(settings.url, function (err, db) {
         if (err) {
             return callback(err);
         }
         db.collection('posts', function (err, collection) {
             if (err) {
-                mongodb.close();
+                db.close();
                 return callback(err);
             }
             collection.findOne({
@@ -223,7 +223,7 @@ Post.edit = function (name, day, title, callback) {
                 "time.day": day,
                 "title": title
             }, function (err, doc) {
-                mongodb.close();
+                db.close();
                 if (err) {
                     return callback(err);
                 } else if (!doc) {
@@ -237,13 +237,13 @@ Post.edit = function (name, day, title, callback) {
 
 // 更新一篇文章及相关信息
 Post.update = function (name, day, title, post, callback) {
-    mongodb.open(function (err, db) {
+    mongodb.connect(settings.url, function (err, db) {
         if (err) {
             return callback(err);
         }
         db.collection('posts', function (err, collection) {
             if (err) {
-                mongodb.close();
+                db.close();
                 return callback(err);
             }
             collection.updateOne({
@@ -253,7 +253,7 @@ Post.update = function (name, day, title, post, callback) {
             }, {
                 $set: {post: post} //Use the $set operator to prevent the other fields from being left empty
             }, function (err) {
-                mongodb.close();
+                db.close();
                 if (err) {
                     return callback(err);
                 }
@@ -265,13 +265,13 @@ Post.update = function (name, day, title, post, callback) {
 
 // 删除一篇文章
 Post.remove = function (name, day, title, callback) {
-    mongodb.open(function (err, db) {
+    mongodb.connect(settings.url, function (err, db) {
         if (err) {
             return callback(err);
         }
         db.collection('posts', function (err, collection) {
             if (err) {
-                mongodb.close();
+                db.close();
                 return callback(err);
             }
 
@@ -282,7 +282,7 @@ Post.remove = function (name, day, title, callback) {
                 'title': title
             }, function (err, doc) {
                 if(err){
-                    mongodb.close();
+                    db.close();
                     return callback(err);
                 }
                 // 如果有reprint_from,即该文章是转载来的，先保存下来reprint_from，以便后续更新原文中reprint_to的信息
@@ -304,7 +304,7 @@ Post.remove = function (name, day, title, callback) {
                         }
                     }, function (err) {
                         if(err){
-                            mongodb.close();
+                            db.close();
                             return callback(err);
                         }
                     });
@@ -316,7 +316,7 @@ Post.remove = function (name, day, title, callback) {
                     'time.day': day,
                     'title': title
                 }, {w: 1}, function (err, result) {
-                    mongodb.close();
+                    db.close();
                     if (err) {
                         return callback(err);
                     } else if (result.result.n == 0) {
@@ -331,13 +331,13 @@ Post.remove = function (name, day, title, callback) {
 
 // 返回所有文章的存档信息
 Post.getArchive = function (callback) {
-    mongodb.open(function (err, db) {
+    mongodb.connect(settings.url, function (err, db) {
         if (err) {
             return callback(err);
         }
         db.collection('posts', function (err, collection) {
             if (err) {
-                mongodb.close();
+                db.close();
                 return callback(err);
             }
             // 返回只包含name、time、title组成的文档
@@ -348,7 +348,7 @@ Post.getArchive = function (callback) {
             }).sort({
                 time: -1
             }).toArray(function (err, docs) {
-                mongodb.close();
+                db.close();
                 if (err) {
                     return callback(err);
                 }
@@ -360,13 +360,13 @@ Post.getArchive = function (callback) {
 
 // 通过标题关键字模糊查询文章信息（即支持正则）
 Post.search = function (keyword, callback) {
-    mongodb.open(function (err, db) {
+    mongodb.connect(settings.url, function (err, db) {
         if (err) {
             return callback(err);
         }
         db.collection('posts', function (err, collection) {
             if (err) {
-                mongodb.close();
+                db.close();
                 return callback(err);
             }
             var pattern = new RegExp(keyword, 'i');
@@ -379,7 +379,7 @@ Post.search = function (keyword, callback) {
             }).sort({
                 time: -1
             }).toArray(function (err, docs) {
-                mongodb.close();
+                db.close();
                 if (err) {
                     return callback(err);
                 }
@@ -403,13 +403,13 @@ Post.search = function (keyword, callback) {
  注意：需要改造Post.remove
  */
 Post.reprint = function (reprint_from, reprint_to, callback) {
-    mongodb.open(function (err, db) {
+    mongodb.connect(settings.url, function (err, db) {
         if (err) {
             return callback(err);
         }
         db.collection('posts', function (err, collection) {
             if (err) {
-                mongodb.close();
+                db.close();
                 return callback(err);
             }
             // 1、找到被转载的文章的原文档，并及修改部分要素生成新的副本
@@ -419,7 +419,7 @@ Post.reprint = function (reprint_from, reprint_to, callback) {
                 'time.day': reprint_from.day
             }, function (err, doc) {
                 if (err) {
-                    mongodb.close();
+                    db.close();
                     return callback(err);
                 }
 
@@ -457,7 +457,7 @@ Post.reprint = function (reprint_from, reprint_to, callback) {
                     }
                 }, function (err) {
                     if(err){
-                        mongodb.close();
+                        db.close();
                         return callback(err);
                     }
                 });
@@ -466,7 +466,7 @@ Post.reprint = function (reprint_from, reprint_to, callback) {
                 collection.insertOne(doc, {
                     w: 1
                 }, function (err, post) {
-                    mongodb.close();
+                    db.close();
                     if(err){
                         return callback(err);
                     }

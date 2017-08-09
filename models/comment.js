@@ -1,4 +1,5 @@
-var mongodb = require('./db')
+var mongodb = require('mongodb').Db;
+    settings = require('../settings');
 
 // 该文章的作者姓名而非留言人姓名
 function Comment(name, day, title, comment) {
@@ -15,13 +16,13 @@ Comment.prototype.save = function (callback) {
         day = this.day,
         title = this.title,
         comment = this.comment;
-    mongodb.open(function (err, db) {
+    mongodb.connect(settings.url, function (err, db) {
         if (err) {
             return callback(err);
         }
         db.collection('posts', function (err, collection) {
             if (err) {
-                mongodb.close();
+                db.close();
                 return callback(err);
             }
             collection.update({
@@ -31,7 +32,7 @@ Comment.prototype.save = function (callback) {
             }, {
                 $push: {'comments': comment} // The $push operator appends a specified value to an array.
             }, function (err) {
-                mongodb.close();
+                db.close();
                 if (err) {
                     return callback(err);
                 }
