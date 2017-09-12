@@ -31,4 +31,8 @@
  16. 日志功能；
  
 ## 附加功能
- 1.使用passport引入OAuth登录机制，github授权登录
+ 1.使用passport引入OAuth登录机制，github授权登录；
+ 2.使用mongoose；
+ 3.使用Async异步编程类库；
+ 4.使用kindEditor富文本编辑器；
+ 
