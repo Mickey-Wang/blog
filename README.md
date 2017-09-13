@@ -31,9 +31,9 @@
  16. 日志功能；
  
 ## 附加功能
- 1.使用passport引入OAuth登录机制，github授权登录；
- 2.使用mongoose；
- 3.使用Async异步编程类库；
- 4.使用kindEditor[富文本编辑器](http://kindeditor.net/demo.php)；
- 5.使用Handlebars[模板引擎](http://handlebarsjs.com/)；
+ 1. 使用passport引入OAuth登录机制，github授权登录；
+ 2. 使用mongoose；
+ 3. 使用Async异步编程类库；
+ 4. 使用kindEditor[富文本编辑器](http://kindeditor.net/demo.php)；
+ 5. 使用Handlebars[模板引擎](http://handlebarsjs.com/)；
  
