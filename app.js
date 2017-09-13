@@ -4,6 +4,7 @@ var favicon = require('serve-favicon');
 var logger = require('morgan');
 var cookieParser = require('cookie-parser');
 var bodyParser = require('body-parser');
+var exphbs = require('express-handlebars');
 
 // var index = require('./routes/index');
 // var users = require('./routes/users');
@@ -43,7 +44,17 @@ app.use(session({
 
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
-app.set('view engine', 'ejs');
+// app.set('view engine', 'ejs');
+// 设置模板引擎为handlebars，在加载时进行预编译，而不是在客户端执行代码时编译，更加语义化。这里用的是express-handlebars
+// 当我们在选软index.hbs，即res.render('index',{...})时，index.hbs会替换layout.hbs中的{{{body}}}
+// {{{htmlContext}}}相当于<%-htmlContext%>，{{textContext}}相当于<%=textContext%>
+// 其中each中的this指遍历的每一项
+app.engine('hbs', exphbs({
+    layoutsDir: 'views', // 设置布局模板文件的目录为views文件夹
+    defaultLayout: 'layout', // 设置默认的页面布局模板为layout.hbs
+    extname: '.hbs' // 自定义后缀名
+}));
+app.set('view engine', 'hbs');
 app.use(flash());
 
 // uncomment after placing your favicon in /public

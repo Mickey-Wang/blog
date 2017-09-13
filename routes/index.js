@@ -424,7 +424,9 @@ module.exports = function (app) {
 
     // 当访问的所有路径都不匹配时，访问404页面
     app.use(function (req, res) {
-        res.render('404');
+        res.render('404', {
+            layout: false
+        });
     });
 
     function checkLogin(req, res, next) {
